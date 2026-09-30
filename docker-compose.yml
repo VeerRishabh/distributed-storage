@@ -1,0 +1,18 @@
+x-node: &node
+  build: .
+  command: ["java", "-cp", "out", "StorageNode"]
+  depends_on: [coordinator]
+  environment: &nodeenv
+    COORDINATOR_URL: http://coordinator:8080
+    CLUSTER_KEY: ${CLUSTER_KEY:-dev-secret}
+    PORT: "9000"
+services:
+  coordinator:
+    build: .
+    ports: ["8080:8080"]
+    environment: { PORT: "8080", REPLICAS: "2", CLUSTER_KEY: "${CLUSTER_KEY:-dev-secret}", DATA_DIR: /data }
+    volumes: ["coord:/data"]
+  node1: { <<: *node, environment: { <<: *nodeenv, NODE_ID: node1, ADVERTISE_URL: "http://node1:9000", DATA_DIR: /data }, volumes: ["n1:/data"] }
+  node2: { <<: *node, environment: { <<: *nodeenv, NODE_ID: node2, ADVERTISE_URL: "http://node2:9000", DATA_DIR: /data }, volumes: ["n2:/data"] }
+  node3: { <<: *node, environment: { <<: *nodeenv, NODE_ID: node3, ADVERTISE_URL: "http://node3:9000", DATA_DIR: /data }, volumes: ["n3:/data"] }
+volumes: { coord: {}, n1: {}, n2: {}, n3: {} }
